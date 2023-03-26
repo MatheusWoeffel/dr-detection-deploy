@@ -63,251 +63,215 @@ module "dr_detection_models_bucket" {
 }
 
 
-################################################################################
-###
-### Sagemaker role
-###
-################################################################################
-
-data "aws_iam_policy_document" "assume_role" {
-  statement {
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["sagemaker.amazonaws.com"]
-    }
-  }
-}
-
-resource "aws_iam_role" "sagemaker-role" {
-  name = "sagemaker-role"
-  assume_role_policy = data.aws_iam_policy_document.assume_role.json
-}
-
-resource "aws_iam_role_policy_attachment" "role-policy-attachment" {
-    for_each = toset([
-        "arn:aws:iam::aws:policy/AmazonSageMakerFullAccess", 
-        "${aws_iam_policy.s3-full-access.arn}"
-    ])
-  role       = aws_iam_role.sagemaker-role.name
-  policy_arn = each.value
-}
-
-resource "aws_iam_policy" "s3-full-access" {
-  name        = "s3-full-access"
-  path        = "/"
-  description = "Policy which gives access to all s3 buckets"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-            "s3:GetObject",
-            "s3:PutObject",
-            "s3:DeleteObject",
-            "s3:ListBucket"
-        ]
-        Effect   = "Allow"
-        Resource = "arn:aws:s3:::*"
-      },
-    ]
-  })
-}
 
 ################################################################################
 ###
-### Sagemaker model
+### Sagemaker execution role
+###
+### Used to configure IAM role policies needed
+### to create sagemaker models (s3/sagemaker permissions)
 ###
 ################################################################################
 
-resource "aws_sagemaker_model" "mobilenet-x86" {
-  name               = "mobilenet-x86"
-  execution_role_arn = aws_iam_role.sagemaker-role.arn
-
-  primary_container {
-    image = "${module.private_dr_detection_deploy_repository.url}:latest"
-    model_data_url = "${module.dr_detection_models_bucket.url}/mobilenet.tar.gz"
-  }
+module "sagemaker_execution_role" {
+  source = "./sagemaker_execution_role"
 }
 
-resource "aws_sagemaker_model" "vgg19-x86" {
-  name               = "vgg19-x86"
-  execution_role_arn = aws_iam_role.sagemaker-role.arn
-
-  primary_container {
-    image = "${module.private_dr_detection_deploy_repository.url}:latest"
-    model_data_url = "${module.dr_detection_models_bucket.url}/vgg19.tar.gz"
-  }
-}
-
-resource "aws_sagemaker_model" "mobilenet-arm" {
-  name               = "mobilenet-arm64"
-  execution_role_arn = aws_iam_role.sagemaker-role.arn
-
-  primary_container {
-    image = "${module.private_dr_detection_deploy_repository.url}:arm64"
-    model_data_url = "${module.dr_detection_models_bucket.url}/mobilenet.tar.gz"
-  }
-}
 
 ################################################################################
 ###
-### Sagemaker endpoint
+### Sagemaker Models
+###
+### Used to create Sagemaker Endpoint Configs
 ###
 ################################################################################
 
-resource "aws_sagemaker_endpoint_configuration" "mobilenet-1gb-serverless" {
-  name = "mobilenet-1gb-serverless-memory"
+module "mobilenet_x86_sagemaker_model" {
+  source = "./sagemaker_model"
 
-  production_variants {
-    variant_name           = "variant-1"
-    model_name             = aws_sagemaker_model.mobilenet-x86.name
+  name = "mobilenet-x86"
+  image_url = "${module.private_dr_detection_deploy_repository.url}:latest"
+  model_data_url = "${module.dr_detection_models_bucket.url}/mobilenet.tar.gz"
+  role_arn = module.sagemaker_execution_role.arn
+}
+
+module "vgg19_x86_sagemaker_model" {
+  source = "./sagemaker_model"
+
+  name = "vgg19-x86"
+  image_url = "${module.private_dr_detection_deploy_repository.url}:latest"
+  model_data_url = "${module.dr_detection_models_bucket.url}/vgg19.tar.gz"
+  role_arn = module.sagemaker_execution_role.arn
+}
+
+module "mobilenet_arm_sagemaker_model" {
+  source = "./sagemaker_model"
+
+  name = "mobilenet-arm"
+  image_url = "${module.private_dr_detection_deploy_repository.url}:arm64"
+  model_data_url = "${module.dr_detection_models_bucket.url}/mobilenet.tar.gz"
+  role_arn = module.sagemaker_execution_role.arn
+}
+
+module "vgg19_arm_sagemaker_model" {
+  source = "./sagemaker_model"
+
+  name = "vgg19-arm"
+  image_url = "${module.private_dr_detection_deploy_repository.url}:arm64"
+  model_data_url = "${module.dr_detection_models_bucket.url}/vgg19.tar.gz"
+  role_arn = module.sagemaker_execution_role.arn
+}
+
+# resource "aws_sagemaker_endpoint_configuration" "mobilenet-1gb-serverless" {
+#   name = "mobilenet-1gb-serverless-memory"
+
+#   production_variants {
+#     variant_name           = "variant-1"
+#     model_name             = aws_sagemaker_model.mobilenet-x86.name
     
-    serverless_config {
-      max_concurrency   = 5
-      memory_size_in_mb = 1024
-    }
-  }
-}
+#     serverless_config {
+#       max_concurrency   = 5
+#       memory_size_in_mb = 1024
+#     }
+#   }
+# }
 
-resource "aws_sagemaker_endpoint_configuration" "mobilenet-2gb-serverless" {
-  name = "mobilenet-2gb-serverless"
+# resource "aws_sagemaker_endpoint_configuration" "mobilenet-2gb-serverless" {
+#   name = "mobilenet-2gb-serverless"
 
-  production_variants {
-    variant_name           = "variant-1"
-    model_name             = aws_sagemaker_model.mobilenet-x86.name
+#   production_variants {
+#     variant_name           = "variant-1"
+#     model_name             = aws_sagemaker_model.mobilenet-x86.name
     
-    serverless_config {
-      max_concurrency   = 5
-      memory_size_in_mb = 2048
-    }
-  }
+#     serverless_config {
+#       max_concurrency   = 5
+#       memory_size_in_mb = 2048
+#     }
+#   }
 
-  tags = {
-    Name = "MobileNet serverless with 2GB serverless endpoint"
-  }
-}
+#   tags = {
+#     Name = "MobileNet serverless with 2GB serverless endpoint"
+#   }
+# }
 
-resource "aws_sagemaker_endpoint_configuration" "mobilenet-3gb-serverless" {
-  name = "mobilenet-3gb-serverless"
+# resource "aws_sagemaker_endpoint_configuration" "mobilenet-3gb-serverless" {
+#   name = "mobilenet-3gb-serverless"
 
-  production_variants {
-    variant_name           = "variant-1"
-    model_name             = aws_sagemaker_model.mobilenet-x86.name
+#   production_variants {
+#     variant_name           = "variant-1"
+#     model_name             = aws_sagemaker_model.mobilenet-x86.name
     
-    serverless_config {
-      max_concurrency   = 5
-      memory_size_in_mb = 3072
-    }
-  }
+#     serverless_config {
+#       max_concurrency   = 5
+#       memory_size_in_mb = 3072
+#     }
+#   }
 
-  tags = {
-    Name = "MobileNet serverless with 3GB serverless endpoint"
-  }
-}
+#   tags = {
+#     Name = "MobileNet serverless with 3GB serverless endpoint"
+#   }
+# }
 
-resource "aws_sagemaker_endpoint_configuration" "mobilenet-4gb-serverless" {
-  name = "mobilenet-4gb-serverless"
+# resource "aws_sagemaker_endpoint_configuration" "mobilenet-4gb-serverless" {
+#   name = "mobilenet-4gb-serverless"
 
-  production_variants {
-    variant_name           = "variant-1"
-    model_name             = aws_sagemaker_model.mobilenet-x86.name
+#   production_variants {
+#     variant_name           = "variant-1"
+#     model_name             = aws_sagemaker_model.mobilenet-x86.name
     
-    serverless_config {
-      max_concurrency   = 5
-      memory_size_in_mb = 4096
-    }
-  }
+#     serverless_config {
+#       max_concurrency   = 5
+#       memory_size_in_mb = 4096
+#     }
+#   }
 
-  tags = {
-    Name = "MobileNet serverless with 4GB serverless endpoint"
-  }
-}
+#   tags = {
+#     Name = "MobileNet serverless with 4GB serverless endpoint"
+#   }
+# }
 
-resource "aws_sagemaker_endpoint_configuration" "vgg19-3gb-serverless" {
-  name = "vgg19-3gb-serverless-memory"
+# resource "aws_sagemaker_endpoint_configuration" "vgg19-3gb-serverless" {
+#   name = "vgg19-3gb-serverless-memory"
 
-  production_variants {
-    variant_name           = "variant-1"
-    model_name             = aws_sagemaker_model.vgg19-x86.name
+#   production_variants {
+#     variant_name           = "variant-1"
+#     model_name             = aws_sagemaker_model.vgg19-x86.name
     
-    serverless_config {
-      max_concurrency   = 5
-      memory_size_in_mb = 3072
-    }
-  }
-}
+#     serverless_config {
+#       max_concurrency   = 5
+#       memory_size_in_mb = 3072
+#     }
+#   }
+# }
 
-resource "aws_sagemaker_endpoint_configuration" "vgg19-1gb-serverless" {
-  name = "vgg19-1gb-serverless-memory"
+# resource "aws_sagemaker_endpoint_configuration" "vgg19-1gb-serverless" {
+#   name = "vgg19-1gb-serverless-memory"
 
-  production_variants {
-    variant_name           = "variant-1"
-    model_name             = aws_sagemaker_model.vgg19-x86.name
+#   production_variants {
+#     variant_name           = "variant-1"
+#     model_name             = aws_sagemaker_model.vgg19-x86.name
     
-    serverless_config {
-      max_concurrency   = 5
-      memory_size_in_mb = 1024
-    }
-  }
+#     serverless_config {
+#       max_concurrency   = 5
+#       memory_size_in_mb = 1024
+#     }
+#   }
 
-  tags = {
-    Name = "VGG19 serverless with 1GB serverless endpoint"
-  }
-}
+#   tags = {
+#     Name = "VGG19 serverless with 1GB serverless endpoint"
+#   }
+# }
 
-resource "aws_sagemaker_endpoint_configuration" "vgg19-2gb-serverless" {
-  name = "vgg19-2gb-serverless-memory"
+# resource "aws_sagemaker_endpoint_configuration" "vgg19-2gb-serverless" {
+#   name = "vgg19-2gb-serverless-memory"
 
-  production_variants {
-    variant_name           = "variant-1"
-    model_name             = aws_sagemaker_model.vgg19-x86.name
+#   production_variants {
+#     variant_name           = "variant-1"
+#     model_name             = aws_sagemaker_model.vgg19-x86.name
     
-    serverless_config {
-      max_concurrency   = 5
-      memory_size_in_mb = 2048
-    }
-  }
+#     serverless_config {
+#       max_concurrency   = 5
+#       memory_size_in_mb = 2048
+#     }
+#   }
 
-  tags = {
-    Name = "VGG19 serverless with 2GB serverless endpoint"
-  }
-}
+#   tags = {
+#     Name = "VGG19 serverless with 2GB serverless endpoint"
+#   }
+# }
 
-resource "aws_sagemaker_endpoint_configuration" "mobilenet-c7g" {
-  name = "mobilenet-c7g"
+# resource "aws_sagemaker_endpoint_configuration" "mobilenet-c7g" {
+#   name = "mobilenet-c7g"
 
-  production_variants {
-    variant_name           = "variant-1"
-    model_name             = aws_sagemaker_model.mobilenet-arm.name
-    instance_type = "ml.c7g.xlarge"
-    initial_instance_count = 1
-  }
+#   production_variants {
+#     variant_name           = "variant-1"
+#     model_name             = aws_sagemaker_model.mobilenet-arm.name
+#     instance_type = "ml.c7g.xlarge"
+#     initial_instance_count = 1
+#   }
 
-  tags = {
-    Name = "Mobilenet c7g endpoint"
-  }
-}
+#   tags = {
+#     Name = "Mobilenet c7g endpoint"
+#   }
+# }
 
-resource "aws_sagemaker_endpoint" "mobilenet-1gb-serverless" {
-  name                 = "mobilenet-1gb-serverless"
-  endpoint_config_name = aws_sagemaker_endpoint_configuration.mobilenet-1gb-serverless.name
+# resource "aws_sagemaker_endpoint" "mobilenet-1gb-serverless" {
+#   name                 = "mobilenet-1gb-serverless"
+#   endpoint_config_name = aws_sagemaker_endpoint_configuration.mobilenet-1gb-serverless.name
 
-  tags = {
-    Name = "MobileNet serverless with 1GB endpoint"
-  }
-}
+#   tags = {
+#     Name = "MobileNet serverless with 1GB endpoint"
+#   }
+# }
 
-resource "aws_sagemaker_endpoint" "vgg19-1gb-serverless" {
-  name                 = "vgg19-1gb-serverless"
-  endpoint_config_name = aws_sagemaker_endpoint_configuration.vgg19-1gb-serverless.name
+# resource "aws_sagemaker_endpoint" "vgg19-1gb-serverless" {
+#   name                 = "vgg19-1gb-serverless"
+#   endpoint_config_name = aws_sagemaker_endpoint_configuration.vgg19-1gb-serverless.name
 
-  tags = {
-    Name = "VGG19 serverless with 1GB endpoint"
-  }
-}
+#   tags = {
+#     Name = "VGG19 serverless with 1GB endpoint"
+#   }
+# }
 
 # resource "aws_sagemaker_endpoint" "vgg19-2gb-serverless" {
 #   name                 = "vgg19-2gb-serverless-memory"
