@@ -124,7 +124,7 @@ module "vgg19_arm_sagemaker_model" {
 
 # ################################################################################
 # ###
-# ### Sagemaker endpoints configurations
+# ### Sagemaker serverless endpoints configurations
 # ###
 # ################################################################################
 
@@ -183,191 +183,95 @@ module "vgg19_3gb_serverless_endpoint_config" {
   memory_size_in_mb = "3072"
 }
 
-# resource "aws_sagemaker_endpoint_configuration" "mobilenet-1gb-serverless" {
-#   name = "mobilenet-1gb-serverless-memory"
+# ################################################################################
+# ###
+# ### Sagemaker realtime endpoints configurations
+# ###
+# ################################################################################
 
-#   production_variants {
-#     variant_name           = "variant-1"
-#     model_name             = aws_sagemaker_model.mobilenet-x86.name
-    
-#     serverless_config {
-#       max_concurrency   = 5
-#       memory_size_in_mb = 1024
-#     }
-#   }
-# }
+module "mobilenet_m6g_realtime_endpoint_config" {
+  source = "./sagemaker_realtime_endpoint_config"
 
-# resource "aws_sagemaker_endpoint_configuration" "mobilenet-2gb-serverless" {
-#   name = "mobilenet-2gb-serverless"
+  name = "mobilenet-m6g"
+  model_name = module.mobilenet_arm_sagemaker_model.name
+  instance_type = "ml.m6g.xlarge"
+  initial_instance_count = 1
+}
 
-#   production_variants {
-#     variant_name           = "variant-1"
-#     model_name             = aws_sagemaker_model.mobilenet-x86.name
-    
-#     serverless_config {
-#       max_concurrency   = 5
-#       memory_size_in_mb = 2048
-#     }
-#   }
+module "mobilenet_c7g_realtime_endpoint_config" {
+  source = "./sagemaker_realtime_endpoint_config"
 
-#   tags = {
-#     Name = "MobileNet serverless with 2GB serverless endpoint"
-#   }
-# }
+  name = "mobilenet-c7g"
+  model_name = module.mobilenet_arm_sagemaker_model.name
+  instance_type = "ml.c7g.xlarge"
+  initial_instance_count = 1
+}
 
-# resource "aws_sagemaker_endpoint_configuration" "mobilenet-3gb-serverless" {
-#   name = "mobilenet-3gb-serverless"
+module "mobilenet_m4_realtime_endpoint_config" {
+  source = "./sagemaker_realtime_endpoint_config"
 
-#   production_variants {
-#     variant_name           = "variant-1"
-#     model_name             = aws_sagemaker_model.mobilenet-x86.name
-    
-#     serverless_config {
-#       max_concurrency   = 5
-#       memory_size_in_mb = 3072
-#     }
-#   }
+  name = "mobilenet-m4"
+  model_name = module.mobilenet_x86_sagemaker_model.name
+  instance_type = "ml.m4.xlarge"
+  initial_instance_count = 1
+}
 
-#   tags = {
-#     Name = "MobileNet serverless with 3GB serverless endpoint"
-#   }
-# }
+module "mobilenet_m5_realtime_endpoint_config" {
+  source = "./sagemaker_realtime_endpoint_config"
 
-# resource "aws_sagemaker_endpoint_configuration" "mobilenet-4gb-serverless" {
-#   name = "mobilenet-4gb-serverless"
+  name = "mobilenet-m5"
+  model_name = module.mobilenet_x86_sagemaker_model.name
+  instance_type = "ml.m5.xlarge"
+  initial_instance_count = 1
+}
 
-#   production_variants {
-#     variant_name           = "variant-1"
-#     model_name             = aws_sagemaker_model.mobilenet-x86.name
-    
-#     serverless_config {
-#       max_concurrency   = 5
-#       memory_size_in_mb = 4096
-#     }
-#   }
+module "vgg19_m6g_realtime_endpoint_config" {
+  source = "./sagemaker_realtime_endpoint_config"
 
-#   tags = {
-#     Name = "MobileNet serverless with 4GB serverless endpoint"
-#   }
-# }
+  name = "vgg19-m6g"
+  model_name = module.vgg19_arm_sagemaker_model.name
+  instance_type = "ml.m6g.xlarge"
+  initial_instance_count = 1
+}
 
-# resource "aws_sagemaker_endpoint_configuration" "vgg19-3gb-serverless" {
-#   name = "vgg19-3gb-serverless-memory"
+module "vgg19_c7g_realtime_endpoint_config" {
+  source = "./sagemaker_realtime_endpoint_config"
 
-#   production_variants {
-#     variant_name           = "variant-1"
-#     model_name             = aws_sagemaker_model.vgg19-x86.name
-    
-#     serverless_config {
-#       max_concurrency   = 5
-#       memory_size_in_mb = 3072
-#     }
-#   }
-# }
+  name = "vgg19-c7g"
+  model_name = module.vgg19_arm_sagemaker_model.name
+  instance_type = "ml.c7g.xlarge"
+  initial_instance_count = 1
+}
 
-# resource "aws_sagemaker_endpoint_configuration" "vgg19-1gb-serverless" {
-#   name = "vgg19-1gb-serverless-memory"
+module "vgg19_m4_realtime_endpoint_config" {
+  source = "./sagemaker_realtime_endpoint_config"
 
-#   production_variants {
-#     variant_name           = "variant-1"
-#     model_name             = aws_sagemaker_model.vgg19-x86.name
-    
-#     serverless_config {
-#       max_concurrency   = 5
-#       memory_size_in_mb = 1024
-#     }
-#   }
+  name = "vgg19-m4"
+  model_name = module.vgg19_x86_sagemaker_model.name
+  instance_type = "ml.m4.xlarge"
+  initial_instance_count = 1
+}
 
-#   tags = {
-#     Name = "VGG19 serverless with 1GB serverless endpoint"
-#   }
-# }
+module "vgg19_m5_realtime_endpoint_config" {
+  source = "./sagemaker_realtime_endpoint_config"
 
-# resource "aws_sagemaker_endpoint_configuration" "vgg19-2gb-serverless" {
-#   name = "vgg19-2gb-serverless-memory"
-
-#   production_variants {
-#     variant_name           = "variant-1"
-#     model_name             = aws_sagemaker_model.vgg19-x86.name
-    
-#     serverless_config {
-#       max_concurrency   = 5
-#       memory_size_in_mb = 2048
-#     }
-#   }
-
-#   tags = {
-#     Name = "VGG19 serverless with 2GB serverless endpoint"
-#   }
-# }
-
-# resource "aws_sagemaker_endpoint_configuration" "mobilenet-c7g" {
-#   name = "mobilenet-c7g"
-
-#   production_variants {
-#     variant_name           = "variant-1"
-#     model_name             = aws_sagemaker_model.mobilenet-arm.name
-#     instance_type = "ml.c7g.xlarge"
-#     initial_instance_count = 1
-#   }
-
-#   tags = {
-#     Name = "Mobilenet c7g endpoint"
-#   }
-# }
-
-# resource "aws_sagemaker_endpoint" "mobilenet-1gb-serverless" {
-#   name                 = "mobilenet-1gb-serverless"
-#   endpoint_config_name = aws_sagemaker_endpoint_configuration.mobilenet-1gb-serverless.name
-
-#   tags = {
-#     Name = "MobileNet serverless with 1GB endpoint"
-#   }
-# }
-
-# resource "aws_sagemaker_endpoint" "vgg19-1gb-serverless" {
-#   name                 = "vgg19-1gb-serverless"
-#   endpoint_config_name = aws_sagemaker_endpoint_configuration.vgg19-1gb-serverless.name
-
-#   tags = {
-#     Name = "VGG19 serverless with 1GB endpoint"
-#   }
-# }
-
-# resource "aws_sagemaker_endpoint" "vgg19-2gb-serverless" {
-#   name                 = "vgg19-2gb-serverless-memory"
-#   endpoint_config_name = aws_sagemaker_endpoint_configuration.vgg19-2gb-serverless.name
-
-#   tags = {
-#     Name = "Vgg19 serverless with 2GB endpoint"
-#   }
-# }
-
-# resource "aws_sagemaker_endpoint" "mobilenet-3gb-serverless" {
-#   name                 = "mobilenet-3gb-serverless-memory"
-#   endpoint_config_name = aws_sagemaker_endpoint_configuration.mobilenet-3gb-serverless.name
-
-#   tags = {
-#     Name = "MobileNet serverless with 3GB endpoint"
-#   }
-# }
+  name = "vgg19-m5"
+  model_name = module.vgg19_x86_sagemaker_model.name
+  instance_type = "ml.m5.xlarge"
+  initial_instance_count = 1
+}
 
 
-# resource "aws_sagemaker_endpoint" "vgg19-3gb-serverless" {
-#   name                 = "vgg19-3gb-serverless-memory"
-#   endpoint_config_name = aws_sagemaker_endpoint_configuration.vgg19-3gb-serverless.name
+################################################################################
+###
+### Sagemaker endpoints
+###
+### Here we define the actual endpoints
+### using the configs defined above
+###
+################################################################################
 
-#   tags = {
-#     Name = "VGG19 serverless with 3GB endpoint"
-#   }
-# }
-
-
-# resource "aws_sagemaker_endpoint" "mobilenet-c7g" {
-#   name                 = "mobilenet-c7g"
-#   endpoint_config_name = aws_sagemaker_endpoint_configuration.mobilenet-c7g.name
-
-#   tags = {
-#     Name = "MobileNet c7g endpoint"
-#   }
-# }
+resource "aws_sagemaker_endpoint" "vgg19-1gb-serverless" {
+  name                 = "vgg19-1gb-serverless"
+  endpoint_config_name = module.vgg19_1gb_serverless_endpoint_config.name
+}
