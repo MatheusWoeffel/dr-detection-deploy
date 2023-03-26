@@ -122,6 +122,67 @@ module "vgg19_arm_sagemaker_model" {
   role_arn = module.sagemaker_execution_role.arn
 }
 
+# ################################################################################
+# ###
+# ### Sagemaker endpoints configurations
+# ###
+# ################################################################################
+
+module "mobilenet_1gb_serverless_endpoint_config" {
+  source = "./sagemaker_serverless_endpoint_config"
+  
+  name = "mobilenet-1gb"
+  model_name = module.mobilenet_x86_sagemaker_model.name
+  max_concurrency = 1
+  memory_size_in_mb = "1024"
+}
+
+module "mobilenet_2gb_serverless_endpoint_config" {
+  source = "./sagemaker_serverless_endpoint_config"
+  
+  name = "mobilenet-2gb"
+  model_name = module.mobilenet_x86_sagemaker_model.name
+  max_concurrency = 1
+  memory_size_in_mb = "2048"
+}
+
+module "mobilenet_3gb_serverless_endpoint_config" {
+  source = "./sagemaker_serverless_endpoint_config"
+  
+  name = "mobilenet-3gb"
+  model_name = module.mobilenet_x86_sagemaker_model.name
+  max_concurrency = 1
+  memory_size_in_mb = "3072"
+}
+
+
+module "vgg19_1gb_serverless_endpoint_config" {
+  source = "./sagemaker_serverless_endpoint_config"
+  
+  name = "vgg19-1gb"
+  model_name = module.vgg19_x86_sagemaker_model.name
+  max_concurrency = 1
+  memory_size_in_mb = "1024"
+}
+
+module "vgg19_2gb_serverless_endpoint_config" {
+  source = "./sagemaker_serverless_endpoint_config"
+  
+  name = "vgg19-2gb"
+  model_name = module.vgg19_x86_sagemaker_model.name
+  max_concurrency = 1
+  memory_size_in_mb = "2048"
+}
+
+module "vgg19_3gb_serverless_endpoint_config" {
+  source = "./sagemaker_serverless_endpoint_config"
+  
+  name = "vgg19-3gb"
+  model_name = module.vgg19_x86_sagemaker_model.name
+  max_concurrency = 1
+  memory_size_in_mb = "3072"
+}
+
 # resource "aws_sagemaker_endpoint_configuration" "mobilenet-1gb-serverless" {
 #   name = "mobilenet-1gb-serverless-memory"
 
