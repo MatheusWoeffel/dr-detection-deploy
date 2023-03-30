@@ -29,5 +29,5 @@ All the infrastructure code is defined in the infrastructure directory, so all t
 
 After uploading some new model artifact (in this case, tensorflow SavedModel) to S3, or uploading a new image version to ECR, a new endpoint must be created to reflect new changes. To do this, new endpoints can be created in main.tf, followed by ```terraform apply```.
 
-## How can i upload a new Docker image to ECR?
+## How can I upload a new Docker image to ECR?
 To do this, the ./build-and-push.sh script can be used. It builds a image, gains authorization to upload to the private ECR described with terraform and then uploads the recently built image.
