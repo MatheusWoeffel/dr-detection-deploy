@@ -21,7 +21,7 @@ First, you need to build the image, by issuing the following command on root fol
 
 ## How to create infrastructure/deploy the solution?
 
-First, you need to configure AWS keys, so Terraform can make API calls to AWS on your behalf. To do this, you can follow the tutorial: [How can I create Access Keys](https://repost.aws/knowledge-center/create-access-key), then, these keys needed to be configured for the aws sdk, the tutorial is available [here] (https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
+First, you need to configure AWS keys, so Terraform can make API calls to AWS on your behalf. To do this, you can follow the tutorial: [How can I create Access Keys](https://repost.aws/knowledge-center/create-access-key), then, these keys needed to be configured for the aws sdk, the tutorial is available [here](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
 
 All the infrastructure code is defined in the infrastructure directory, so all the next commands assume that the current dir is ./infrastructure. To provision the infrastructure we need to:
 1. ```Terraform init```: This will initialize terraform state and install all the needed providers, with all the modules referenced in main.tf.
