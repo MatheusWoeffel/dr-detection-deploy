@@ -13,3 +13,9 @@ variable "model_data_url" {
 variable "role_arn" {
     description = "Models execution role ARN"
 }
+
+variable "env_vars" {
+    description = "Container's env vars"
+    type = map(string)
+    default = null
+}

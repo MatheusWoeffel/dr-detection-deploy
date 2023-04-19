@@ -122,6 +122,18 @@ module "vgg19_arm_sagemaker_model" {
   role_arn = module.sagemaker_execution_role.arn
 }
 
+module "mobilenet_x86_serverless" {
+  source = "./sagemaker_model"
+
+  name = "mobilenet-x86-serverless"
+  image_url = "${module.private_dr_detection_deploy_repository.url}:latest"
+  model_data_url = "${module.dr_detection_models_bucket.url}/mobilenet.tar.gz"
+  role_arn = module.sagemaker_execution_role.arn
+  env_vars = {
+    "MODEL_SERVER_WORKERS" = "1"
+  }
+}
+
 # ################################################################################
 # ###
 # ### Sagemaker serverless endpoints configurations
@@ -132,7 +144,7 @@ module "mobilenet_1gb_serverless_endpoint_config" {
   source = "./sagemaker_serverless_endpoint_config"
   
   name = "mobilenet-1gb"
-  model_name = module.mobilenet_x86_sagemaker_model.name
+  model_name = module.mobilenet_x86_serverless.name
   max_concurrency = 1
   memory_size_in_mb = "1024"
 }
@@ -271,7 +283,7 @@ module "vgg19_m5_realtime_endpoint_config" {
 ###
 ################################################################################
 
-resource "aws_sagemaker_endpoint" "vgg19-1gb-serverless" {
-  name                 = "vgg19-1gb-serverless"
-  endpoint_config_name = module.vgg19_1gb_serverless_endpoint_config.name
+resource "aws_sagemaker_endpoint" "mobilenet-1gb-serverless" {
+  name                 = "mobilenet-1gb-serverless"
+  endpoint_config_name = module.mobilenet_1gb_serverless_endpoint_config.name
 }
