@@ -5,14 +5,19 @@ run_locust() {
     host=$2
     output_dir=$3
     mkdir -p $output_dir
-    locust --host=$2 --locustfile=locustfile.py,load_shapes/$shape.py --headless --csv=$output_dir/$shape-stats
+    locust --host=$host --locustfile=locustfile.py,load_shapes/$shape.py --headless --csv=$output_dir/$shape-stats
 }
 
-# Iterate over each load shaspe and run the test
-for shape in "constant" "incremental" "random" "spike"; do
-    echo "Running $shape load test..."
-    run_locust "$shape" "https://runtime.sagemaker.us-east-1.amazonaws.com/endpoints/mobilenet/invocations" results
-    echo "$shape load test completed."
+hosts=("https://runtime.sagemaker.us-east-1.amazonaws.com/endpoints/vgg19/invocations")
 
-    sleep 15m
+# Iterate over each host and load shape and run the test
+for host in "${hosts[@]}"; do
+    for shape in "constant" "incremental" "random" "spike"; do
+        echo "Running $shape load test for host $host..."
+        output_subdir="${host##*/}" # Extract part of the host URL for output directory
+        run_locust "$shape" "$host" "results/$output_subdir"
+        echo "$shape load test for host $host completed."
+
+        sleep 15m
+    done
 done
